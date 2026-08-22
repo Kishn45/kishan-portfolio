@@ -983,7 +983,7 @@
           <textarea id="cf-message" name="message" rows="3" placeholder="Tell me about the idea..." required></textarea>
         </div>
         <button type="submit" class="form-submit">Start a Conversation &rarr;</button>
-        <p class="form-note">This opens your email client with the message pre-filled.</p>
+        <p class="form-note">Your message will be saved securely.</p>
       </form>
     </div>
   </div>
@@ -1058,16 +1058,26 @@
   }, { threshold: 0.12 });
   revealEls.forEach(el => io.observe(el));
  
-  // Contact form -> mailto
+  // Contact form -> Google Sheet
   const form = document.getElementById('contactForm');
-  form.addEventListener('submit', (e) => {
+  const formSubmit = form.querySelector('.form-submit');
+  const sheetEndpoint = 'https://script.google.com/macros/s/AKfycbxLLWb07_s1nljpyIY6SfMAvVwxHHIDythJ9EC_d53lwwttw1236LZMBSjBne9bUAyE/exec';
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('cf-name').value;
-    const email = document.getElementById('cf-email').value;
-    const message = document.getElementById('cf-message').value;
-    const subject = encodeURIComponent('New project idea from ' + name);
-    const body = encodeURIComponent(message + '\n\n\u2014 ' + name + ' (' + email + ')');
-    window.location.href = `mailto:kishakumar062006@gmail.com?subject=${subject}&body=${body}`;
+    formSubmit.disabled = true;
+    formSubmit.textContent = 'Sending...';
+    try {
+      await fetch(sheetEndpoint, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new URLSearchParams(new FormData(form))
+      });
+      form.reset();
+      formSubmit.textContent = 'Message Sent';
+    } catch (error) {
+      formSubmit.disabled = false;
+      formSubmit.textContent = 'Try Again';
+    }
   });
 </script>
 <script>
